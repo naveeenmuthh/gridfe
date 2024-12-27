@@ -25,7 +25,7 @@ h1 {
 .cell {
   width: 20px;
   height: 20px;
-  background-color: #ddd;
+  background-color: black;
   border: 1px solid #ccc;
   cursor: pointer;
   transition: background-color 0.3s ease;
