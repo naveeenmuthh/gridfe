@@ -1,95 +1,119 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"
 
-export default function Home() {
+import React, { useState } from "react";
+import axios from "axios";
+
+const GRID_SIZE = 20;
+
+function App() {
+  const [grid, setGrid] = useState(createInitialGrid());
+  const [startTile, setStartTile] = useState(null);
+  const [endTile, setEndTile] = useState(null);
+  const [path, setPath] = useState([]);
+
+  function createInitialGrid() {
+    return Array.from({ length: GRID_SIZE }, (_, row) =>
+      Array.from({ length: GRID_SIZE }, (_, col) => ({
+        row,
+        col,
+        isStart: false,
+        isEnd: false,
+        isPath: false,
+      }))
+    );
+  }
+
+  function handleCellClick(row, col) {
+    if (!startTile) {
+      setStartTile({ row, col });
+      updateGrid(row, col, "isStart");
+    } else if (!endTile) {
+      setEndTile({ row, col });
+      updateGrid(row, col, "isEnd");
+    }
+  }
+
+  function updateGrid(row, col, type) {
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((gridRow) =>
+        gridRow.map((cell) => {
+          if (cell.row === row && cell.col === col) {
+            return { ...cell, [type]: true };
+          }
+          return cell;
+        })
+      );
+      return newGrid;
+    });
+  }
+
+  async function findPath() {
+    if (!startTile || !endTile) {
+      alert("Please select both start and end tiles.");
+      return;
+    }
+
+    const requestBody = {
+      start: { x: startTile.row, y: startTile.col },
+      end: { x: endTile.row, y: endTile.col },
+    };
+
+    try {
+      const response = await axios.post("http://localhost:8080/find-path", requestBody);
+      const { path } = response.data;
+
+      setPath(path);
+      highlightPath(path);
+    } catch (error) {
+      console.error("Error fetching path:", error);
+    }
+  }
+
+  function highlightPath(path) {
+    setGrid((prevGrid) => {
+      const newGrid = prevGrid.map((gridRow) =>
+        gridRow.map((cell) => {
+          const isPathCell = path.some((p) => p.x === cell.row && p.y === cell.col);
+          return { ...cell, isPath: isPathCell };
+        })
+      );
+      return newGrid;
+    });
+  }
+
+  function resetGrid() {
+    setGrid(createInitialGrid());
+    setStartTile(null);
+    setEndTile(null);
+    setPath([]);
+  }
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="App">
+      <h1>Pathfinding Visualizer</h1>
+      <div className="grid">
+        {grid.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              className={`cell ${
+                cell.isStart
+                  ? "start"
+                  : cell.isEnd
+                  ? "end"
+                  : cell.isPath
+                  ? "path"
+                  : ""
+              }`}
+              onClick={() => handleCellClick(rowIndex, colIndex)}
+            ></div>
+          ))
+        )}
+      </div>
+      <button onClick={findPath}>Find Path</button>
+      <button onClick={resetGrid}>Reset Grid</button>
     </div>
   );
 }
+
+export default App;
