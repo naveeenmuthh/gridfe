@@ -59,7 +59,7 @@ function App() {
     };
 
     try {
-      const response = await axios.post("http://localhost:8080/find-path", requestBody);
+      const response = await axios.post("https://backend-gb9q.onrender.com/find-path", requestBody);
       const { path } = response.data;
 
       setPath(path);
