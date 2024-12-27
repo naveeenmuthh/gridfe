@@ -39,3 +39,11 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## About
 
 This Application finds the shortest distance between two selected points using DFS.
+
+Frontend Deployed URL :  https://twopoint.netlify.app/
+
+Backend Service Deployed URL : https://backend-gb9q.onrender.com/  
+
+Frontend Repository URL : https://github.com/naveeenmuthh/gridfe
+
+Backend Repository URL : https://github.com/naveeenmuthh/backend
